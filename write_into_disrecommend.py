@@ -29,3 +29,4 @@ with open(fname) as f:
 			connection.commit()
 		except:
 			pass
+connection.close()
