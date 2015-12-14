@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>BigDataProject</title>
+    <style>
+      html, body, #map-canvas {
+        height: 768px;
+        margin: 0px;
+        padding: 0px
+      }
+      #panel {
+        height: 768px;
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=visualization"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script>
+    // Adding 500 Data Points
+    var map, pointarray, heatmap;
+    var keyword = 'All';
+    var taxiData = [
+      new google.maps.LatLng(37.782551, -122.445368)
+    ];
+
+    function addPoint(result) {
+      console.log(result);
+      taxiData = [];
+      $.each(result.data, function(i, field){
+        taxiData.push(new google.maps.LatLng(field.latitude, field.longitude));
+      });
+      pointArray = new google.maps.MVCArray(taxiData);
+      heatmap.setData(pointArray);
+    }
+
+    function myFunction() {
+      var address = $("#address").val();
+      var time = $("#timeperiod").val();
+      if (address !== "Null" && time !== "Null") {
+        // send data to server
+        $.getJSON("/address", {
+          a: address,
+          b: time
+        }, function(result) {
+          addPoint(result);
+        });
+        // result={"data":[{"latitude":40.7488, "longitude":-73.9854}], "status":200};
+        // addPoint(result);
+      }
+    }
+    
+    function appendTable(result) {
+      console.log(result);
+      $("#urec").html("");
+      $("#drec").html("");
+      var ucontent = "";
+      $.each(result.udata, function(i, field) {
+        ucontent += '<tr><td>' + (i + 1) + '</td><td>' + field + '</td></tr>';
+      });
+      var dcontent = "";
+      $.each(result.ddata, function(i, field) {
+        dcontent += '<tr><td>' + (i + 1) + '</td><td>' + field + '</td></tr>';
+      });
+      $("#urec").append(ucontent);
+      $("#drec").append(dcontent);
+    }
+
+    function genTable() {
+      var address = $("#address").val();
+      var userid = $("#userid").val();
+      // var test = ['panda','ollies','westplace','bettlona','UFO'];
+      if (address !== "Null" || userid !== "") {
+        $.getJSON("/recommend", {
+          a: address,
+          b: userid
+        }, function(result) {
+          appendTable(result);
+        });
+      }
+    }
+
+    // window.setInterval(secondcall, 1000);
+    function initialize() {
+      var mapOptions = {
+        zoom: 4,
+        center: new google.maps.LatLng(37.774546, -122.433523),
+        // mapTypeId: google.maps.MapTypeId.SATELLITE
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      };
+
+      map = new google.maps.Map(document.getElementById('map-canvas'),
+          mapOptions);
+
+      var pointArray = new google.maps.MVCArray(taxiData);
+
+      heatmap = new google.maps.visualization.HeatmapLayer({
+        data: pointArray
+      });
+
+      heatmap.setMap(map);
+      // addPoint();
+      $("#address").change(myFunction);
+      $("#timeperiod").change(myFunction);
+      $("#recommend").click(genTable);
+    }
+
+    function toggleHeatmap() {
+      heatmap.setMap(heatmap.getMap() ? null : map);
+    }
+
+    function changeGradient() {
+      var gradient = [
+        'rgba(0, 255, 255, 0)',
+        'rgba(0, 255, 255, 1)',
+        'rgba(0, 191, 255, 1)',
+        'rgba(0, 127, 255, 1)',
+        'rgba(0, 63, 255, 1)',
+        'rgba(0, 0, 255, 1)',
+        'rgba(0, 0, 223, 1)',
+        'rgba(0, 0, 191, 1)',
+        'rgba(0, 0, 159, 1)',
+        'rgba(0, 0, 127, 1)',
+        'rgba(63, 0, 91, 1)',
+        'rgba(127, 0, 63, 1)',
+        'rgba(191, 0, 31, 1)',
+        'rgba(255, 0, 0, 1)'
+      ]
+      heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+    }
+
+    function changeRadius() {
+      heatmap.set('radius', heatmap.get('radius') ? null : 20);
+    }
+
+    function changeOpacity() {
+      heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
+    }
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+
+    </script>
+  </head>
+
+  <body>
+    <div class="container" style="width: 1280px; margin: 0px;">
+      <div class="row">
+        <div class="col-md-8" style="padding-left: 0px;">
+          <div id="map-canvas"></div>
+        </div>
+        <div class="col-md-4" style="padding-top: 10px;padding-left: 0px;">
+          <div id="panel">
+            <form class="form-horizontal">
+              <div class="form-group">
+                <label class="col-sm-3 control-label">User ID</label>
+                <div class="col-sm-5">
+                  <input type="text" class="form-control" id="userid" placeholder="user id">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-3 control-label">Address</label>
+                <div class="col-sm-9" style="padding-top:5px;">
+                  <select id="address">
+                    <option value="Null">Select</option>
+                    <option value="New York, NY">New York, NY</option>
+                    <option value="San Francisco, CA">San Francisco, CA</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-3 control-label">Time</label>
+                <div class="col-sm-9" style="padding-top:5px;">
+                  <select id="timeperiod">
+                    <option value="Null">Select</option>
+                    <option value="8">8:00 - 9:00</option>
+                    <option value="9">9:00 - 10:00</option>
+                    <option value="10">10:00 - 11:00</option>
+                    <option value="11">11:00 - 12:00</option>
+                    <option value="12">12:00 - 13:00</option>
+                    <option value="13">13:00 - 14:00</option>
+                    <option value="14">14:00 - 15:00</option>
+                    <option value="15">15:00 - 16:00</option>
+                    <option value="16">16:00 - 17:00</option>
+                    <option value="17">17:00 - 18:00</option>
+                    <option value="18">18:00 - 19:00</option>
+                    <option value="19">19:00 - 20:00</option>
+                    <option value="20">20:00 - 21:00</option>
+                    <option value="21">21:00 - 22:00</option>
+                    <option value="22">22:00 - 23:00</option>
+                  </select>
+                </div>
+              </div>
+              <br/>
+              <button type="button" class="btn btn-info" id="recommend">Recommend!</button>
+              <h4>Recommended Restaurants</h4>
+              <h5>User Based Recommendation</h5>
+              <table class="table table-hover" id="urec">
+                <tr><td>1</td><td>Panda Express</td></tr>
+                <tr><td>2</td><td>Betalona</td></tr>
+                <tr><td>3</td><td>Ollies</td></tr>
+                <tr><td>4</td><td>Legend</td></tr>
+                <tr><td>5</td><td>Little Sheep</td></tr>
+              </table>
+              <h5>District Based Recommendation</h5>
+              <table class="table table-hover" id="drec">
+                <tr><td>1</td><td>Panda Express</td></tr>
+                <tr><td>2</td><td>Betalona</td></tr>
+                <tr><td>3</td><td>Ollies</td></tr>
+                <tr><td>4</td><td>Legend</td></tr>
+                <tr><td>5</td><td>Little Sheep</td></tr>
+              </table>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>    
+  </body>
+</html>
