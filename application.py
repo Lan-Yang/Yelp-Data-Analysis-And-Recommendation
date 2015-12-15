@@ -9,7 +9,6 @@ connection = pymysql.connect(host='bigdata.crqksqwikdb4.us-east-1.rds.amazonaws.
                              db='Bigdata',
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
-address_db = "address"
 app = Flask(__name__)
 
 @app.route('/')
@@ -28,10 +27,10 @@ def address_point():
 	data=[]
 	try:
 		with connection.cursor() as cursor:
-			sql = "SELECT `latitude`, `longitude` FROM `address` WHERE `city`=%s AND `state`=%s AND `checktime`=%s"
+			sql = "SELECT `latitude`, `longitude`, `weight` FROM `addressw` WHERE `city`=%s AND `state`=%s AND `checktime`=%s"
 			cursor.execute(sql, (city, state, checktime))
 			for tmp_list in cursor:
-				data.append({'latitude': tmp_list['latitude'], 'longitude': tmp_list['longitude']})
+				data.append({'latitude': tmp_list['latitude'], 'longitude': tmp_list['longitude'], 'weight': tmp_list['weight']})
 	except:
 		pass
 	f = {'data': data, 'status': 200} 

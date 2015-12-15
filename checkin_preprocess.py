@@ -16,8 +16,14 @@ if not DRY_RUN:
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
 
-# f1_name = "LV_BLA.csv"
-f1_name = "henderson_BLA.csv"
+# f1_name = "henderson_BLA.csv"
+# state = "NV"
+# city = "Henderson"
+
+f1_name = "LV_BLA.csv"
+state = "NV"
+city = "Las Vegas"
+
 business = {}
 
 with open(f1_name) as f:
@@ -46,17 +52,19 @@ with open(f2_name) as f:
 		check_in = obj["checkin_info"]
 		lng = business[bus_id][0]
 		lat = business[bus_id][1]
-		# print bus_id, len(check_in)
+		# print bus_id, lng, lat
 		for time in check_in:
 			checkin_time = time.split('-')[0]
 			checkin[bus_id][checkin_time] += 1
 print 'Data prepared'
 
 # insert into table
-sql = """INSERT INTO `addressw` (`state`,`city`,`longitude`,`latitude`,`checktime`, `weight`) VALUES ('NV','Las Vegas',%s,%s,%s,%s)"""
+sql = """INSERT INTO `addressw` (`state`,`city`,`longitude`,`latitude`,`checktime`, `weight`) VALUES (%s,%s,%s,%s,%s,%s)"""
 data = []
 for bus_id, checkins in checkin.iteritems():
-	data += [(lng, lat, checkin_time, weight) for checkin_time, weight in checkins.iteritems() if weight > 0]
+	lng = business[bus_id][0]
+	lat = business[bus_id][1]
+	data += [(state, city, lng, lat, checkin_time, weight) for checkin_time, weight in checkins.iteritems() if weight > 0]
 print len(data)
 
 if not DRY_RUN:

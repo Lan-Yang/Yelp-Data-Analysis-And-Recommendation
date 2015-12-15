@@ -13,7 +13,7 @@
         height: 768px;
       }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=visualization"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -35,7 +35,8 @@
       console.log(result);
       taxiData = [];
       $.each(result.data, function(i, field){
-        taxiData.push(new google.maps.LatLng(field.latitude, field.longitude));
+        var obj = {location: new google.maps.LatLng(field.latitude, field.longitude), weight: field.weight};
+        taxiData.push(obj);
       });
       pointArray = new google.maps.MVCArray(taxiData);
       heatmap.setData(pointArray);
@@ -170,8 +171,8 @@
                 <div class="col-sm-9" style="padding-top:5px;">
                   <select id="address">
                     <option value="Null">Select</option>
-                    <option value="New York, NY">New York, NY</option>
-                    <option value="San Francisco, CA">San Francisco, CA</option>
+                    <option value="Las Vegas, NV">Las Vegas, NV</option>
+                    <option value="Henderson, NV">Henderson, NV</option>
                   </select>
                 </div>
               </div>
